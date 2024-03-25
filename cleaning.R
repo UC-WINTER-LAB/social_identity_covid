@@ -15,25 +15,24 @@ drop_acc()
 sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identity_leadership.csv") %>%
   
   #Removing Redundant Columns
-  dplyr::select(-contains("StartDate")) %>%
-  dplyr::select(-contains("EndDate")) %>%
-  dplyr:: select(-contains("Status")) %>%
-  dplyr:: select(-contains("IPAddress")) %>%
-  dplyr:: select(-contains("Progress")) %>%
-  dplyr:: select(-contains("RecordedDate")) %>%
-  dplyr:: select(-contains("ResponseID")) %>%
-  dplyr:: select(-contains("consentAgreement")) %>%
-  dplyr:: select(-contains("Duration")) %>%
-  dplyr:: select(-contains("RecipientLastName")) %>%
-  dplyr:: select(-contains("RecipientFirstName")) %>%
-  dplyr:: select(-contains("RecipientEmail")) %>%
-  dplyr:: select(-contains("ExternalReference")) %>%
-  dplyr:: select(-contains("LocationLatitude")) %>%
-  dplyr:: select(-contains("LocationLongitude")) %>%
-  dplyr:: select(-contains("DistributionChannel")) %>%
-  dplyr:: select(-contains("UserLanguage")) %>%
-  dplyr:: select(-contains("Q47")) %>% #This was a consent question
-  dplyr:: select(-contains("Q61")) #Empty question
+  select(-StartDate, 
+         -EndDate, 
+         -ResponseId,
+         -Status, 
+         -IPAddress, 
+         -Progress, 
+         -RecordedDate,
+         -RecipientLastName, 
+         -Duration..in.seconds.,
+         -RecipientFirstName, 
+         -RecipientEmail,
+         -ExternalReference, 
+         -LocationLatitude, 
+         -LocationLongitude, 
+         -DistributionChannel,
+         -UserLanguage,
+         -Q47, #Consent question
+         -Q61) #Empty question
 
 
 ######Filtering###### -- IF RELEVANT
