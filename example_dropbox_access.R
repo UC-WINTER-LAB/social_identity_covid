@@ -1,11 +1,16 @@
 library(tidyverse)
 library(rdrop2)
 
+###Downloaded rdrop with: 
+###devtools::install_github("fcampelo/rdrop2")
+
 # Authenticate with dropbox
-drop_auth()
+drop_auth(new_user = TRUE)
+drop_acc()
 
 # View files filtered by stem (easier to save to object then access path names)
-drop_dir("winter data/covid19 lockdown surveys")
+drop_dir(path = "winter data/covid19 lockdown surveys")
+drop_dir()
 
 # Load a single file
 my_df <- drop_read_csv("winter data/rwa mturk experiment 2022/condition_codes.csv")
@@ -25,3 +30,4 @@ for (file in 1:length(files)) {
     drop_read_csv(files[file])
   )
 }
+
