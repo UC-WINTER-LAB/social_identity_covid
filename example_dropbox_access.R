@@ -5,8 +5,7 @@ library(rdrop2)
 ###devtools::install_github("fcampelo/rdrop2")
 
 # Authenticate with dropbox
-drop_auth(new_user = TRUE)
-drop_acc()
+drop_auth()
 
 # View files filtered by stem (easier to save to object then access path names)
 drop_dir(path = "winter data/covid19 lockdown surveys")
