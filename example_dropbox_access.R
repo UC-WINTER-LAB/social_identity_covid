@@ -2,7 +2,7 @@ library(tidyverse)
 library(rdrop2)
 
 # Authenticate with dropbox
-drop_auth()
+drop_auth(new_user = TRUE)
 
 # View files filtered by stem (easier to save to object then access path names)
 drop_dir("winter data/covid19 lockdown surveys")
