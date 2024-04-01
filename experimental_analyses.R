@@ -10,6 +10,8 @@ leadership.Model <- '
   entrepreneurship =~ ID.leadership_9 + ID.leadership_10 + ID.leadership_11 + ID.leadership_12
 
   impresarioship =~ ID.leadership_13 + ID.leadership_14 + ID.leadership_15 
+  
+  ili =~ 1*prototypicality + 1*advancement + 1*entrepreneurship + 1*impresarioship
 '
 
 leadership_fit <- cfa(leadership.Model, data = test_ili)
