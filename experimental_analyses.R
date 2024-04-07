@@ -46,7 +46,6 @@ for (fs in colnames(fear_scores)) {
 }
 
 
-
 ###################Test Political Affiliation CFA######################
 
 politics.Model <- '
@@ -90,51 +89,91 @@ for (fs in colnames(ingroup_scores)) {
   test_ili[idx, fs] <- ingroup_scores[ , fs]
 }
 
+
+###############Make new dataset for analyses, clear environment#############
+analysis_df <- test_ili[c(1, 53:62)]
+
+rm(list = setdiff(ls(), "analysis_df"))
+
+
+###############Regression on political party, sex, age, on ingroup###########
+analysis_df$Political_Party <- as.factor(analysis_df$Political_Party)
+analysis_df$Sex <- as.factor(analysis_df$Sex)
+analysis_df$Age <- as.numeric(analysis_df$Age)
+
+ingroup_model <- lm(ingroup ~ Age + Sex + Political_Party, data = analysis_df)
+summary(ingroup_model)
+
+
+#########New Regressions on political party, ili, and subfactors##################
+#Overall ILI
+ili_model <- lm(ili ~ Political_Party, data = analysis_df) 
+summary(ili_model) #SIGNIFICANT
+
+#Prototypicality
+proto_model <- lm(prototypicality ~ Political_Party, data = analysis_df) 
+summary(proto_model) #SIGNIFICANT
+
+#Advancement
+adv_model <- lm(advancement ~ Political_Party, data = analysis_df) 
+summary(adv_model) #SIGNIFICANT
+
+#Entrepreneurship
+entre_model <- lm(entrepreneurship ~ Political_Party, data = analysis_df) 
+summary(entre_model) #SIGNIFICANT
+
+#Impresarioship
+impres_model <- lm(impresarioship ~ Political_Party, data = analysis_df) 
+summary(impres_model) #SIGNIFICANT
+
+
+
+###################Old Regressions#################################
+
+#Regression on original political affiliation and ingroup affiliation - SIGN
+paia_model <- lm(ingroup ~ politics, data = analysis_df)
+summary(paia_model)
+
+#Regression on original political affiliation and prototypicality - SIGN
+papro_model <- lm(prototypicality ~ politics, data = analysis_df)
+summary(papro_model)
+
+#Regression on original political affiliation and advancement - SIGN
+paad_model <- lm(advancement ~ politics, data = analysis_df)
+summary(paad_model)
+
+#Regression on original political affiliation and entrepreneurship - SIGN
+paen_model <- lm(entrepreneurship  ~ politics, data = analysis_df)
+summary(paen_model)
+
+#Regression on original political affiliation and impresarioship - SIGN
+paim_model <- lm(impresarioship ~ politics, data = analysis_df)
+summary(paim_model)
+
+
 ###################Test Correlations on Predicted Values ################
 
-
-df_Cor <- test_ili %>%
+#Note "politics" is original predicted variable, not categorical one
+df_Cor <- analysis_df %>%
   select(prototypicality, advancement, entrepreneurship, impresarioship,
          fear, politics, ingroup)
 
 rcorr(as.matrix(df_Cor))
 
 
-###################Regressions#################################
-
-#Regression on political affiliation and ingroup affiliation - SIGN
-paia_model <- lm(ingroup ~ politics, data = test_ili)
-summary(paia_model)
-
-#Regression on political affiliation and prototypicality - SIGN
-papro_model <- lm(prototypicality ~ politics, data = test_ili)
-summary(papro_model)
-
-#Regression on political affiliation and advancement - SIGN
-paad_model <- lm(advancement ~ politics, data = test_ili)
-summary(paad_model)
-
-#Regression on political affiliation and entrepreneurship - SIGN
-paen_model <- lm(entrepreneurship  ~ politics, data = test_ili)
-summary(paen_model)
-
-#Regression on political affiliation and impresarioship - SIGN
-paim_model <- lm(impresarioship ~ politics, data = test_ili)
-summary(paim_model)
-
 
 #############Test Correlations via Normal Score Calculations################
 
 #########Calculating ili score
-test_ili$ILI_Score <- rowMeans(test_ili[,c(1:15)], na.rm = TRUE)
+analysis_df$ILI_Score <- rowMeans(test_ili[,c(1:15)], na.rm = TRUE)
 
 #Calculating fear of covid score
-test_ili$FOC_Score <- rowSums(test_ili[,c(16:22)], na.rm = TRUE)
+analysis_df$FOC_Score <- rowSums(test_ili[,c(16:22)], na.rm = TRUE)
 
 
 
 #Correlation -- sign, but weak correlation, also skewed to the right
-ggscatter(test_ili, x = "ILI_Score", y = "FOC_Score", 
+ggscatter(analysis_df, x = "ILI_Score", y = "FOC_Score", 
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson", 
           xlab = "Identity Leadership", 
