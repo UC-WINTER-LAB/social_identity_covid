@@ -43,8 +43,9 @@ sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identit
 #sil_df <- sil_df %>%
   #filter(Finished == "TRUE") 
 
-
-test_ili <- sil_df[c(2, 4, 40:89)]
+#Creates new dataset with age, gender, political party, ILI, ingroup affilitation
+#and uncertainty (fear of covid + perceived vulnerability to disease)
+test_ili <- sil_df[c(2, 4, 40:60, 68:104)]
 
 ###################Recoding####################
 
@@ -64,14 +65,22 @@ test_ili <- test_ili %>%
   
   
   #Recode ili
-  mutate_at(c(31:45), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(24:38), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
   
-  #Recode fear of covid
-  mutate_at(c(46:52), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  #Recode fear of covid and perceived vulnerability
+  mutate_at(c(39:60), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neutral" = 4,
-                                       "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7)))
+                                       "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) 
+  
+#Recode perceived vulnerability
+test_ili$Perceived.Vuln_3R <- 8 - test_ili$Perceived.Vuln_3
+test_ili$Perceived.Vuln_5R <- 8 - test_ili$Perceived.Vuln_5
+test_ili$Perceived.Vuln_11R <- 8 - test_ili$Perceived.Vuln_11
+test_ili$Perceived.Vuln_12R <- 8 - test_ili$Perceived.Vuln_12
+test_ili$Perceived.Vuln_13R <- 8 - test_ili$Perceived.Vuln_13
+test_ili$Perceived.Vuln_14R <- 8 - test_ili$Perceived.Vuln_14
 
 
 ####################Creating Sex and Political Party Variables###############
@@ -88,6 +97,105 @@ test_ili <- test_ili %>%
   mutate(Sex = case_when(Gender == 'Male' ~ 'Male',
                          Gender == 'Female' ~ 'Female'))
 
+###########################CFAS######################################
 
+########Test ILI CFA
 
+leadership.Model <- '
+  prototypicality =~ ID.leadership_1 + ID.leadership_2 +  ID.leadership_3 + ID.leadership_4
+
+  advancement =~ ID.leadership_5 + ID.leadership_6 + ID.leadership_7 + ID.leadership_8
+
+  entrepreneurship =~ ID.leadership_9 + ID.leadership_10 + ID.leadership_11 + ID.leadership_12
+
+  impresarioship =~ ID.leadership_13 + ID.leadership_14 + ID.leadership_15 
   
+  ili =~ 1*prototypicality + 1*advancement + 1*entrepreneurship + 1*impresarioship
+'
+
+leadership_fit <- cfa(leadership.Model, data = test_ili, ordered = TRUE)
+summary(leadership_fit, fit.measures = TRUE) #Good RMSEA, good CFI
+
+
+##Yeet predicted ili scores into ye olde test dataframe
+idx <- lavInspect(leadership_fit, "case.idx")
+ili_scores <- lavPredict(leadership_fit)
+## loop over factors
+for (fs in colnames(ili_scores)) {
+  test_ili[idx, fs] <- ili_scores[ , fs]
+}
+
+
+############Test Fear of Covid CFA#############
+fear.Model <- '
+  fear =~ Fear.of.COVID_1 + Fear.of.COVID_2 + Fear.of.COVID_3 + Fear.of.COVID_4 +
+          Fear.of.COVID_5 + Fear.of.COVID_6 + Fear.of.COVID_7
+'
+
+fear_fit <- cfa(fear.Model, data = test_ili, ordered = TRUE)
+summary(fear_fit, fit.measures = TRUE) #Shit RMSEA, good CFI
+
+
+##Yeet predicted fear of covid scores into ye olde test dataframe
+idx <- lavInspect(fear_fit, "case.idx")
+fear_scores <- lavPredict(fear_fit)
+## loop over factors
+for (fs in colnames(fear_scores)) {
+  test_ili[idx, fs] <- fear_scores[ , fs]
+}
+
+
+
+############Perceive Vulnerability CFA#############
+vulnerability.Model <- '
+  vulnerability =~ Perceived.Vuln_1 + Perceived.Vuln_2 + Perceived.Vuln_3R + 
+                   Perceived.Vuln_4 + Perceived.Vuln_5R + Perceived.Vuln_6 + 
+                   Perceived.Vuln_7 + Perceived.Vuln_8 + Perceived.Vuln_9 + 
+                   Perceived.Vuln_10 + Perceived.Vuln_11R + Perceived.Vuln_12R + 
+                   Perceived.Vuln_13R + Perceived.Vuln_14R + Perceived.Vuln_15
+'
+
+vulnerability_fit <- cfa(vulnerability.Model, data = test_ili, ordered = TRUE)
+summary(vulnerability_fit, fit.measures = TRUE) #Shit RMSEA, Shit CFI
+
+
+##Yeet predicted perceived vulnerability scores into ye olde test dataframe
+idx <- lavInspect(vulnerability_fit, "case.idx")
+vulnerability_scores <- lavPredict(vulnerability_fit)
+## loop over factors
+for (fs in colnames(vulnerability_scores)) {
+  test_ili[idx, fs] <- vulnerability_scores[ , fs]
+}
+
+#################Test Ingroup Affilitation CFA######################
+
+ingroup.Model <- '
+  ingroup =~ Ingroup.identity_1 + Ingroup.identity_2 + Ingroup.identity_3 + 
+             Ingroup.identity_4 + Ingroup.identity_5 + Ingroup.identity_6 + 
+             Ingroup.identity_7 + Ingroup.identity_8 + Ingroup.identity_9 + 
+             Ingroup.identity_10 + Ingroup.identity_11 + Ingroup.identity_12 + 
+             Ingroup.identity_13 + Ingroup.identity_14 + Ingroup.identity_15 + 
+             Ingroup.identity_16
+'
+
+ingroup_fit <- cfa(ingroup.Model, data = test_ili, ordered = TRUE)
+summary(ingroup_fit, fit.measures = TRUE) #both rmsea and cfi are bad
+
+
+#Join predicted values into the dataset
+idx <- lavInspect(ingroup_fit, "case.idx")
+ingroup_scores <- lavPredict(ingroup_fit)
+## loop over factors
+for (fs in colnames(ingroup_scores)) {
+  test_ili[idx, fs] <- ingroup_scores[ , fs]
+}
+
+#######################Clear environment, make nice dataframe#################
+analysis_df <- test_ili[c(1, 67:76)]
+
+rm(list = setdiff(ls(), "analysis_df"))
+
+#Making sure that the variables are set nicely (and correctly)
+analysis_df$Political_Party <- as.factor(analysis_df$Political_Party)
+analysis_df$Sex <- as.factor(analysis_df$Sex)
+analysis_df$Age <- as.numeric(analysis_df$Age)

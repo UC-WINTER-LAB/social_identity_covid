@@ -1,129 +1,125 @@
 source("cleaning.R")
 
-########Test ILI CFA
 
-leadership.Model <- '
-  prototypicality =~ ID.leadership_1 + ID.leadership_2 +  ID.leadership_3 + ID.leadership_4
+##National vs Labour in in-group identity -- ANOVA
+ingroup.anova <- aov(ingroup ~ Political_Party, data = analysis_df)
+summary(ingroup.anova) #Significant differences in ingroup affiliation
 
-  advancement =~ ID.leadership_5 + ID.leadership_6 + ID.leadership_7 + ID.leadership_8
+###############Regression on political party and ili on ingroup###########
+part_ili_model <- lm(ingroup ~ ili + Political_Party, data = analysis_df)
+summary(part_ili_model) #Significant -- test for mediation?
 
-  entrepreneurship =~ ID.leadership_9 + ID.leadership_10 + ID.leadership_11 + ID.leadership_12
+###############Regression on political party, fear, vulnerability on ingroup###########
+part_uncert_model <- lm(ingroup ~ fear + vulnerability + Political_Party, data = analysis_df)
+summary(part_uncert_model) #vulnerability non-significant, fear -- yes
 
-  impresarioship =~ ID.leadership_13 + ID.leadership_14 + ID.leadership_15 
-  
-  ili =~ 1*prototypicality + 1*advancement + 1*entrepreneurship + 1*impresarioship
+
+######################EXPLORATORY MEDIATION ANALYSES###############
+##Complete ILI on the relationship between political party and ingroup identity
+ili.model <- '
+              #mediator
+              ili ~ a * Political_Party
+              ingroup ~ b * ili
+              
+              #direct effect
+              ingroup ~ c * Political_Party
+              
+              #indirect effect
+              ab := a*b
+              
+              #total effect
+              total := c + (a*b)
+
 '
-
-leadership_fit <- cfa(leadership.Model, data = test_ili)
-summary(leadership_fit, fit.measures = TRUE) #Good RMSEA, good CFI
-
-
-##Yeet predicted ili scores into ye olde test dataframe
-idx <- lavInspect(leadership_fit, "case.idx")
-ili_scores <- lavPredict(leadership_fit)
-## loop over factors
-for (fs in colnames(ili_scores)) {
-  test_ili[idx, fs] <- ili_scores[ , fs]
-}
+fit <- sem(model = ili.model, data = analysis_df, se = "bootstrap", bootstrap = 1000)
+summary(fit, fit.measures = TRUE) #partial mediation
 
 
-############Test Fear of Covid CFA#############
-fear.Model <- '
-  fear =~ Fear.of.COVID_1 + Fear.of.COVID_2 + Fear.of.COVID_3 + Fear.of.COVID_4 +
-          Fear.of.COVID_5 + Fear.of.COVID_6 + Fear.of.COVID_7
+#####Prototypicality on the relationship between political party and ingroup identity
+proto.model <- '
+              #mediator
+              prototypicality ~ a * Political_Party
+              ingroup ~ b * prototypicality
+              
+              #direct effect
+              ingroup ~ c * Political_Party
+              
+              #indirect effect
+              ab := a*b
+              
+              #total effect
+              total := c + (a*b)
+
 '
-
-fear_fit <- cfa(fear.Model, data = test_ili)
-summary(fear_fit, fit.measures = TRUE) #Shit RMSEA, ehh CFI
-
-
-##Yeet predicted fear of covid scores into ye olde test dataframe
-idx <- lavInspect(fear_fit, "case.idx")
-fear_scores <- lavPredict(fear_fit)
-## loop over factors
-for (fs in colnames(fear_scores)) {
-  test_ili[idx, fs] <- fear_scores[ , fs]
-}
+proto_fit <- sem(model = proto.model, data = analysis_df, se = "bootstrap", bootstrap = 1000)
+summary(proto_fit, fit.measures = TRUE) #partial mediation (stronger than previous)
 
 
-###################Test Political Affiliation CFA######################
+#####Fear of Covid on the relationship between ILI and ingroup identity
+fear.model <- '
+              #mediator
+              fear ~ a * ili
+              ingroup ~ b * fear
+              
+              #direct effect
+              ingroup ~ c * ili
+              
+              #indirect effect
+              ab := a*b
+              
+              #total effect
+              total := c + (a*b)
 
-politics.Model <- '
-  politics =~ Political.party.sup_1 + Political.party.sup_2 + Political.party.sup_3 + 
-              Political.party.sup_4 + Political.party.sup_5
 '
+fear_fit <- sem(model = fear.model, data = analysis_df, se = "bootstrap", bootstrap = 1000)
+summary(fear_fit, fit.measures = TRUE) #no mediation
 
-politics_fit <- cfa(politics.Model, data = test_ili)
-summary(politics_fit, fit.measures = TRUE) #both rmsea and cfi are bad
+#####Vulnerabiliry on the relationship between ILI and ingroup identity
+vuln.model <- '
+              #mediator
+              vulnerability ~ a * ili
+              ingroup ~ b * vulnerability
+              
+              #direct effect
+              ingroup ~ c * ili
+              
+              #indirect effect
+              ab := a*b
+              
+              #total effect
+              total := c + (a*b)
 
-
-#Join predicted values into the dataset
-idx <- lavInspect(politics_fit, "case.idx")
-politics_scores <- lavPredict(politics_fit)
-## loop over factors
-for (fs in colnames(politics_scores)) {
-  test_ili[idx, fs] <- politics_scores[ , fs]
-}
-
-
-#################Test Ingroup Affilitation CFA######################
-
-ingroup.Model <- '
-  ingroup =~ Ingroup.identity_1 + Ingroup.identity_2 + Ingroup.identity_3 + 
-             Ingroup.identity_4 + Ingroup.identity_5 + Ingroup.identity_6 + 
-             Ingroup.identity_7 + Ingroup.identity_8 + Ingroup.identity_9 + 
-             Ingroup.identity_10 + Ingroup.identity_11 + Ingroup.identity_12 + 
-             Ingroup.identity_13 + Ingroup.identity_14 + Ingroup.identity_15 + 
-             Ingroup.identity_16
 '
-
-ingroup_fit <- cfa(ingroup.Model, data = test_ili)
-summary(ingroup_fit, fit.measures = TRUE) #both rmsea and cfi are bad
-
-
-#Join predicted values into the dataset
-idx <- lavInspect(ingroup_fit, "case.idx")
-ingroup_scores <- lavPredict(ingroup_fit)
-## loop over factors
-for (fs in colnames(ingroup_scores)) {
-  test_ili[idx, fs] <- ingroup_scores[ , fs]
-}
+vuln_fit <- sem(model = vuln.model, data = analysis_df, se = "bootstrap", bootstrap = 1000)
+summary(vuln_fit, fit.measures = TRUE) #no mediation
 
 
-###############Make new dataset for analyses, clear environment#############
-analysis_df <- test_ili[c(1, 53:62)]
-
-rm(list = setdiff(ls(), "analysis_df"))
-
+#########################OLD ANALYSES BELOW#########################
 
 ###############Regression on political party, sex, age, on ingroup###########
-analysis_df$Political_Party <- as.factor(analysis_df$Political_Party)
-analysis_df$Sex <- as.factor(analysis_df$Sex)
-analysis_df$Age <- as.numeric(analysis_df$Age)
-
 ingroup_model <- lm(ingroup ~ Age + Sex + Political_Party, data = analysis_df)
 summary(ingroup_model)
 
 
 #########New Regressions on political party, ili, and subfactors##################
 #Overall ILI
-ili_model <- lm(ili ~ Political_Party, data = analysis_df) 
+ili_model <- lm(ili ~ Age + Sex + Political_Party, data = analysis_df) 
 summary(ili_model) #SIGNIFICANT
 
 #Prototypicality
-proto_model <- lm(prototypicality ~ Political_Party, data = analysis_df) 
+proto_model <- lm(prototypicality ~ Age + Sex + Political_Party, data = analysis_df) 
 summary(proto_model) #SIGNIFICANT
 
 #Advancement
-adv_model <- lm(advancement ~ Political_Party, data = analysis_df) 
+adv_model <- lm(advancement ~ Age + Sex + Political_Party, data = analysis_df) 
 summary(adv_model) #SIGNIFICANT
 
 #Entrepreneurship
-entre_model <- lm(entrepreneurship ~ Political_Party, data = analysis_df) 
+entre_model <- lm(entrepreneurship ~ Age + Sex + Political_Party, data = analysis_df) 
 summary(entre_model) #SIGNIFICANT
 
 #Impresarioship
-impres_model <- lm(impresarioship ~ Political_Party, data = analysis_df) 
+impres_model <- lm(impresarioship ~ Age + Sex + Political_Party, data = analysis_df) 
 summary(impres_model) #SIGNIFICANT
 
 
