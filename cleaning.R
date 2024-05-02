@@ -43,34 +43,40 @@ sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identit
 #sil_df <- sil_df %>%
   #filter(Finished == "TRUE") 
 
-#Creates new dataset with age, gender, political party, ILI, ingroup affilitation
-#and uncertainty (fear of covid + perceived vulnerability to disease)
-test_ili <- sil_df[c(2, 4, 40:60, 68:104)]
+#Creates new dataset with age, gender, political party, political orientation, 
+#and ILI, ingroup affiliation, fear of covid, and perceived vulnerability to disease
+test_ili <- sil_df[c(2, 4, 39:60, 68:104)]
 
 ###################Recoding####################
 
 test_ili <- test_ili %>%
   
+  #Recode political orientation (bigger the number, the more conservative)
+  mutate_at(c(3), ~as.numeric(recode(., "Very Liberal" = 1, "Liberal" = 2, 
+                                     "Somewhat liberal" = 3, "Moderate" = 4, 
+                                     "Somewhat conservative" = 5, "Conservative" = 6,
+                                     "Very Conservative" = 7))) %>%
+  
   #Recode political affiliation
-  mutate_at(c(3:7), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
+  mutate_at(c(4:8), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
                                        "Oppose" = 3, "Somewhat oppose" = 4, "Weakly oppose" = 5,
                                        "Neutral/Neither oppose nor support" = 6, "weakly support" = 7,
                                        "Somewhat support" = 8, "Support" = 9, "Strongly Support" = 10,
                                        "Totally Support" = 11))) %>%
   
   #Recode ingroup affiliation
-  mutate_at(c(8:23), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(9:24), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                         "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
                                         "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
   
   
   #Recode ili
-  mutate_at(c(24:38), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(25:39), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
   
   #Recode fear of covid and perceived vulnerability
-  mutate_at(c(39:60), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(40:61), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neutral" = 4,
                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) 
   
@@ -191,7 +197,7 @@ for (fs in colnames(ingroup_scores)) {
 }
 
 #######################Clear environment, make nice dataframe#################
-analysis_df <- test_ili[c(1, 67:76)]
+analysis_df <- test_ili[c(1, 3,  68:77)]
 
 rm(list = setdiff(ls(), "analysis_df"))
 
