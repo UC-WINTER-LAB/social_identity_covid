@@ -46,6 +46,29 @@ ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
 
 ############################MEDIATIONS###########################
 
+##Two Mediators (Proto and ACT) on political party & ingroup
+act_party.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political_Party + Age + Sex
+                   act ~ a2 * Political_Party + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * act
+
+                   #direct effect
+                   ingroup ~ c * Political_Party + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_act := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_act + c
+'
+act_party_fit <- sem(model = act_party.model, data = analysis_df, se = "bootstrap", 
+                     bootstrap = 1000)
+summary(act_party_fit, fit.measures = TRUE)
+
+
 ##Two Mediators (Proto and Conservatism) on political party & ingroup
 con_party.model <- '
                    #mediators
