@@ -10,8 +10,13 @@ summary(ingroup.anova) #Significant differences in ingroup affiliation
 
 ######################REGRESSIONS############################
 
+#Regression on political party/orientation, sex, age, on ingroup
+politic_model <- lm(ingroup ~ Political_Party + Political.Beliefs + Age + Sex, data = analysis_df)
+summary(politic_model)
+
+
 #Regression on political party and ili on ingroup###########
-part_ili_model <- lm(ingroup ~ ili + Political_Party, data = analysis_df)
+part_ili_model <- lm(ingroup ~ ili + Political_Party + Age + Sex, data = analysis_df)
 summary(part_ili_model) #Significant -- test for mediation?
 
 #Regression on political party, fear, vulnerability on ingroup###########
@@ -30,7 +35,7 @@ summary(orient2_model)
 
 
 #Moderation regression (ili on ingroup, party as moderator)
-moder_model <- lm(ingroup ~ ili + ili*Political_Party, data = analysis_df)
+moder_model <- lm(ingroup ~ ili + Age + Sex + ili*Political_Party, data = analysis_df)
 summary(moder_model)
 
 ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
@@ -40,6 +45,52 @@ ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
 
 
 ############################MEDIATIONS###########################
+
+##Two Mediators (Proto and Conservatism) on political party & ingroup
+con_party.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political_Party + Age + Sex
+                   conservatism ~ a2 * Political_Party + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * conservatism
+
+                   #direct effect
+                   ingroup ~ c * Political_Party + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_conserv := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_conserv + c
+'
+con_party_fit <- sem(model = con_party.model, data = analysis_df, se = "bootstrap", 
+                     bootstrap = 1000)
+summary(con_party_fit, fit.measures = TRUE)
+
+
+##Two Mediators (Proto and Conservatism) on political orientation & ingroup
+con_orientation.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political.Beliefs + Age + Sex
+                   conservatism ~ a2 * Political.Beliefs + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * conservatism
+
+                   #direct effect
+                   ingroup ~ c * Political.Beliefs + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_conserv := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_conserv + c
+'
+con_orientation_fit <- sem(model = con_orientation.model, data = analysis_df, se = "bootstrap", 
+                     bootstrap = 1000)
+summary(con_orientation_fit, fit.measures = TRUE)
+
 
 ##Multiple Mediation (all ili subfactors) on political party
 party.model <- '
@@ -108,24 +159,15 @@ summary(orient_ili_fit, fit.measures = TRUE)
 ##Multiple Mediation (all ili subfactors) on political party and orientation
 full.model <- '
                 #mediators
-                advancement ~ a1 * Political_Party
-                prototypicality ~ a2 * Political_Party
-                entrepreneurship ~ a3 * Political_Party
-                impresarioship ~ a4 * Political_Party
+                advancement ~ a1 * Political_Party + a5 * Political.Beliefs + Age + Sex
+                prototypicality ~ a2 * Political_Party + a6 * Political.Beliefs + Age + Sex
+                entrepreneurship ~ a3 * Political_Party + a7 * Political.Beliefs + Age + Sex
+                impresarioship ~ a4 * Political_Party + a8 * Political.Beliefs + Age + Sex
                 
-                advancement ~ a5 * Political.Beliefs
-                prototypicality ~ a6 * Political.Beliefs
-                entrepreneurship ~ a7 * Political.Beliefs
-                impresarioship ~ a8 * Political.Beliefs
-                
-                ingroup ~ b1 * advancement
-                ingroup ~ b2 * prototypicality
-                ingroup ~ b3 * entrepreneurship
-                ingroup ~ b4 * impresarioship
+                ingroup ~ b1 * advancement + b2 * prototypicality + b3 * entrepreneurship + b4 * impresarioship
                 
                 #direct effect
-                ingroup ~ c1 * Political_Party
-                ingroup ~ c2 * Political.Beliefs
+                ingroup ~ c1 * Political_Party + c2 * Political.Beliefs + Age + Sex
                 
                 #indirect
                 ind_adv_part := a1 * b1
