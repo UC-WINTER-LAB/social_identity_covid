@@ -43,40 +43,46 @@ sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identit
 #sil_df <- sil_df %>%
   #filter(Finished == "TRUE") 
 
-#Creates new dataset with age, gender, political party, political orientation, 
+#Creates new dataset with age, gender, political party, political orientation, conservatism,
 #and ILI, ingroup affiliation, fear of covid, and perceived vulnerability to disease
-test_ili <- sil_df[c(2, 4, 39:60, 68:104)]
+test_ili <- sil_df[c(2, 4, 13:18, 39:60, 68:104)]
 
 ###################Recoding####################
 
 test_ili <- test_ili %>%
   
+  #Recode conservatism
+  mutate_at(c(3:8), ~as.numeric(recode(., "Strongly Disagree" = 1, "Disagree" = 2, 
+                                       "Somewhat disagree" = 3, "Neutral" = 4, 
+                                       "Somewhat agree" = 5, "Agree" = 6, 
+                                       "Strongly Agree" = 7))) %>%
+  
   #Recode political orientation (bigger the number, the more conservative)
-  mutate_at(c(3), ~as.numeric(recode(., "Very Liberal" = 1, "Liberal" = 2, 
+  mutate_at(c(9), ~as.numeric(recode(., "Very Liberal" = 1, "Liberal" = 2, 
                                      "Somewhat liberal" = 3, "Moderate" = 4, 
                                      "Somewhat conservative" = 5, "Conservative" = 6,
                                      "Very Conservative" = 7))) %>%
   
   #Recode political affiliation
-  mutate_at(c(4:8), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
+  mutate_at(c(10:14), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
                                        "Oppose" = 3, "Somewhat oppose" = 4, "Weakly oppose" = 5,
                                        "Neutral/Neither oppose nor support" = 6, "weakly support" = 7,
                                        "Somewhat support" = 8, "Support" = 9, "Strongly Support" = 10,
                                        "Totally Support" = 11))) %>%
   
   #Recode ingroup affiliation
-  mutate_at(c(9:24), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(15:30), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                         "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
                                         "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
   
   
   #Recode ili
-  mutate_at(c(25:39), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(31:45), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
   
   #Recode fear of covid and perceived vulnerability
-  mutate_at(c(40:61), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(46:67), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neutral" = 4,
                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) 
   
@@ -87,6 +93,11 @@ test_ili$Perceived.Vuln_11R <- 8 - test_ili$Perceived.Vuln_11
 test_ili$Perceived.Vuln_12R <- 8 - test_ili$Perceived.Vuln_12
 test_ili$Perceived.Vuln_13R <- 8 - test_ili$Perceived.Vuln_13
 test_ili$Perceived.Vuln_14R <- 8 - test_ili$Perceived.Vuln_14
+
+#Recode conservatism
+test_ili$ACT.Conservatism_1R <- 8 - test_ili$ACT.Conservatism_1
+test_ili$ACT.Conservatism_3R <- 8 - test_ili$ACT.Conservatism_3
+test_ili$ACT.Conservatism_6R <- 8 - test_ili$ACT.Conservatism_6
 
 
 ####################Creating Sex and Political Party Variables###############
@@ -132,6 +143,24 @@ for (fs in colnames(ili_scores)) {
 }
 
 
+#####################Conservatism CFA###############
+conservatism.Model <- '
+  conservatism =~ ACT.Conservatism_1R + ACT.Conservatism_2 + ACT.Conservatism_3R +
+                  ACT.Conservatism_4 + ACT.Conservatism_5 + ACT.Conservatism_6R
+'
+
+con_fit <- cfa(conservatism.Model, data = test_ili, ordered = TRUE)
+summary(con_fit, fit.measures = TRUE) #not great fit measures
+
+##Yeet predicted conservatism latent valyes into dataframe
+idx <- lavInspect(con_fit, "case.idx")
+con_scores <- lavPredict(con_fit)
+##loop over factors
+for (fs in colnames(con_scores)) {
+  test_ili[idx, fs] <- con_scores[ , fs]
+}
+
+
 ############Test Fear of Covid CFA#############
 fear.Model <- '
   fear =~ Fear.of.COVID_1 + Fear.of.COVID_2 + Fear.of.COVID_3 + Fear.of.COVID_4 +
@@ -152,7 +181,7 @@ for (fs in colnames(fear_scores)) {
 
 
 
-############Perceive Vulnerability CFA#############
+############Perceived Vulnerability CFA#############
 vulnerability.Model <- '
   vulnerability =~ Perceived.Vuln_1 + Perceived.Vuln_2 + Perceived.Vuln_3R + 
                    Perceived.Vuln_4 + Perceived.Vuln_5R + Perceived.Vuln_6 + 
@@ -197,7 +226,7 @@ for (fs in colnames(ingroup_scores)) {
 }
 
 #######################Clear environment, make nice dataframe#################
-analysis_df <- test_ili[c(1, 3,  68:77)]
+analysis_df <- test_ili[c(1, 9,  77:87)]
 
 rm(list = setdiff(ls(), "analysis_df"))
 
