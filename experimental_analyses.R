@@ -1,119 +1,16 @@
 source("cleaning.R")
 
-########################ANOVAS#####################################
 
+#####################MODEL TESTING############################
 
-##National vs Labour in in-group identity -- ANOVA
-ingroup.anova <- aov(ingroup ~ Political_Party, data = analysis_df)
-summary(ingroup.anova) #Significant differences in ingroup affiliation
-
-
-######################REGRESSIONS############################
+###########Model 1: political party/orientation on ingroup
 
 #Regression on political party/orientation, sex, age, on ingroup
 politic_model <- lm(ingroup ~ Political_Party + Political.Beliefs + Age + Sex, data = analysis_df)
 summary(politic_model)
 
 
-#Regression on political party and ili on ingroup###########
-part_ili_model <- lm(ingroup ~ ili + Political_Party + Age + Sex, data = analysis_df)
-summary(part_ili_model) #Significant -- test for mediation?
-
-#Regression on political party, fear, vulnerability on ingroup###########
-part_uncert_model <- lm(ingroup ~ fear + vulnerability + Political_Party, data = analysis_df)
-summary(part_uncert_model) #vulnerability non-significant, fear -- yes
-
-#Regression on political orientation, ili, age, and sex on ingroup
-orient_model <- lm(ingroup ~ Political.Beliefs + advancement + impresarioship + prototypicality +
-                     entrepreneurship + Age + Sex, data = analysis_df)
-summary(orient_model)
-
-#Regression on ili, age, and sex on ingroup
-orient2_model <- lm(ingroup ~ advancement + impresarioship + prototypicality +
-                     entrepreneurship + Age + Sex, data = analysis_df)
-summary(orient2_model)
-
-
-#Moderation regression (ili on ingroup, party as moderator)
-moder_model <- lm(ingroup ~ ili + Age + Sex + ili*Political_Party, data = analysis_df)
-summary(moder_model)
-
-ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
-  geom_point() + geom_smooth(method = "lm", se = FALSE) +
-  scale_colour_manual(name = "Political Party", labels = c("Labour", "National"),
-                      values = c("#FF6666", "#6666FF"))
-
-
-############################MEDIATIONS###########################
-
-##Two Mediators (Proto and ACT) on political party & ingroup
-act_party.model <- '
-                   #mediators
-                   prototypicality ~ a1 * Political_Party + Age + Sex
-                   act ~ a2 * Political_Party + Age + Sex
-
-                   ingroup ~ b1 * prototypicality + b2 * act
-
-                   #direct effect
-                   ingroup ~ c * Political_Party + Age + Sex
-
-                   #indirect effect
-                   ind_proto := a1 * b1
-                   ind_act := a2 * a2
-
-                   #total effect
-                   total := ind_proto + ind_act + c
-'
-act_party_fit <- sem(model = act_party.model, data = analysis_df, se = "bootstrap", 
-                     bootstrap = 1000)
-summary(act_party_fit, fit.measures = TRUE)
-
-
-##Two Mediators (Proto and Conservatism) on political party & ingroup
-con_party.model <- '
-                   #mediators
-                   prototypicality ~ a1 * Political_Party + Age + Sex
-                   conservatism ~ a2 * Political_Party + Age + Sex
-
-                   ingroup ~ b1 * prototypicality + b2 * conservatism
-
-                   #direct effect
-                   ingroup ~ c * Political_Party + Age + Sex
-
-                   #indirect effect
-                   ind_proto := a1 * b1
-                   ind_conserv := a2 * a2
-
-                   #total effect
-                   total := ind_proto + ind_conserv + c
-'
-con_party_fit <- sem(model = con_party.model, data = analysis_df, se = "bootstrap", 
-                     bootstrap = 1000)
-summary(con_party_fit, fit.measures = TRUE)
-
-
-##Two Mediators (Proto and Conservatism) on political orientation & ingroup
-con_orientation.model <- '
-                   #mediators
-                   prototypicality ~ a1 * Political.Beliefs + Age + Sex
-                   conservatism ~ a2 * Political.Beliefs + Age + Sex
-
-                   ingroup ~ b1 * prototypicality + b2 * conservatism
-
-                   #direct effect
-                   ingroup ~ c * Political.Beliefs + Age + Sex
-
-                   #indirect effect
-                   ind_proto := a1 * b1
-                   ind_conserv := a2 * a2
-
-                   #total effect
-                   total := ind_proto + ind_conserv + c
-'
-con_orientation_fit <- sem(model = con_orientation.model, data = analysis_df, se = "bootstrap", 
-                     bootstrap = 1000)
-summary(con_orientation_fit, fit.measures = TRUE)
-
+###########Model 2: impact of ili on political party/orientation on ingroup
 
 ##Multiple Mediation (all ili subfactors) on political party
 party.model <- '
@@ -174,7 +71,7 @@ orient_ili.model <- '
 
 '
 orient_ili_fit <- sem(model = orient_ili.model, data = analysis_df, se = "bootstrap", 
-                     bootstrap = 1000)
+                      bootstrap = 1000)
 summary(orient_ili_fit, fit.measures = TRUE)
 
 
@@ -209,8 +106,151 @@ full.model <- '
 
 '
 full_fit <- sem(model = full.model, data = analysis_df, se = "bootstrap", 
-                     bootstrap = 1000)
+                bootstrap = 1000)
 summary(full_fit, fit.measures = TRUE)
+
+
+#########Model 3: introducing authoritarianism
+
+##Two Mediators (Proto and ACT) on political party & ingroup
+act_party.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political_Party + Age + Sex
+                   act ~ a2 * Political_Party + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * act
+
+                   #direct effect
+                   ingroup ~ c * Political_Party + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_act := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_act + c
+'
+act_party_fit <- sem(model = act_party.model, data = analysis_df, se = "bootstrap", 
+                     bootstrap = 1000)
+summary(act_party_fit, fit.measures = TRUE)
+
+
+##########Model 4: political party and orientation on ACT, proto, and ingroup
+
+act_part_orie_model <- '
+                       #mediators
+                       prototypicality ~ a1 * Political_Party + a3 * Political.Beliefs + Age + Sex
+                       act ~ a2 * Political_Party + a4 * Political.Beliefs + Age + Sex
+    
+                       ingroup ~ b1 * prototypicality + b2 * act
+
+                       #direct effect
+                       ingroup ~ c1 * Political_Party + c2 * Political.Beliefs + Age + Sex
+
+                       #indirect effect
+                       ind_proto_part := a1 * b1
+                       ind_act_part := a2 * b2
+
+                       ind_proto_orie := a3 * b1
+                       ind_act_orie := a4 * b2
+
+                       #total effect
+                       total1 := ind_proto_part + ind_act_part + c1
+                       total2 := ind_proto_orie + ind_act_orie + c2
+'
+
+act_part_orie_fit <- sem(model = act_part_orie_model, data = analysis_df, se = "bootstrap",
+                         bootstrap = 1000)
+summary(act_part_orie_fit, fit.measures = TRUE)
+
+#########################OLD ANALYSES BELOW#########################
+
+######################REGRESSIONS############################
+
+#Regression on political party and ili on ingroup###########
+part_ili_model <- lm(ingroup ~ ili + Political_Party + Age + Sex, data = analysis_df)
+summary(part_ili_model) #Significant -- test for mediation?
+
+
+#Regression on political party, fear, vulnerability on ingroup###########
+part_uncert_model <- lm(ingroup ~ fear + vulnerability + Political_Party, data = analysis_df)
+summary(part_uncert_model) #vulnerability non-significant, fear -- yes
+
+
+#Regression on political orientation, ili, age, and sex on ingroup
+orient_model <- lm(ingroup ~ Political.Beliefs + advancement + impresarioship + prototypicality +
+                     entrepreneurship + Age + Sex, data = analysis_df)
+summary(orient_model)
+
+
+#Regression on ili, age, and sex on ingroup
+orient2_model <- lm(ingroup ~ advancement + impresarioship + prototypicality +
+                      entrepreneurship + Age + Sex, data = analysis_df)
+summary(orient2_model)
+
+
+#############TESTING FOR MODERATION#####################
+
+
+#Moderation regression (ili on ingroup, party as moderator)
+moder_model <- lm(ingroup ~ ili + Age + Sex + ili*Political_Party, data = analysis_df)
+summary(moder_model)
+
+ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  scale_colour_manual(name = "Political Party", labels = c("Labour", "National"),
+                      values = c("#FF6666", "#6666FF"))
+
+
+############################MEDIATIONS###########################
+
+##Two Mediators (Proto and Conservatism) on political party & ingroup
+con_party.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political_Party + Age + Sex
+                   conservatism ~ a2 * Political_Party + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * conservatism
+
+                   #direct effect
+                   ingroup ~ c * Political_Party + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_conserv := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_conserv + c
+'
+con_party_fit <- sem(model = con_party.model, data = analysis_df, se = "bootstrap", 
+                     bootstrap = 1000)
+summary(con_party_fit, fit.measures = TRUE)
+
+
+##Two Mediators (Proto and Conservatism) on political orientation & ingroup
+con_orientation.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political.Beliefs + Age + Sex
+                   conservatism ~ a2 * Political.Beliefs + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * conservatism
+
+                   #direct effect
+                   ingroup ~ c * Political.Beliefs + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_conserv := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_conserv + c
+'
+con_orientation_fit <- sem(model = con_orientation.model, data = analysis_df, se = "bootstrap", 
+                           bootstrap = 1000)
+summary(con_orientation_fit, fit.measures = TRUE)
+
+
+
 
 
 ##Complete ILI on the relationship between political party and ingroup identity
@@ -312,7 +352,12 @@ vuln_fit <- sem(model = vuln.model, data = analysis_df, se = "bootstrap", bootst
 summary(vuln_fit, fit.measures = TRUE) #no mediation
 
 
-#########################OLD ANALYSES BELOW#########################
+########################ANOVAS#####################################
+
+
+##National vs Labour in in-group identity -- ANOVA
+ingroup.anova <- aov(ingroup ~ Political_Party, data = analysis_df)
+summary(ingroup.anova) #Significant differences in ingroup affiliation
 
 ###############Regression on political party, sex, age, on ingroup###########
 ingroup_model <- lm(ingroup ~ Age + Sex + Political_Party, data = analysis_df)
