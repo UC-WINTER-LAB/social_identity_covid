@@ -1,5 +1,8 @@
 source("cleaning.R")
 
+##To add here: Demographics
+
+
 
 #####################MODEL TESTING############################
 
@@ -10,7 +13,7 @@ politic_model <- lm(ingroup ~ Political_Party + Political.Beliefs + Age + Sex, d
 summary(politic_model)
 
 
-###########Model 2: impact of ili on political party/orientation on ingroup
+###########Model 2: impact of ili on political party on ingroup
 
 ##Multiple Mediation (all ili subfactors) on political party
 party.model <- '
@@ -41,73 +44,6 @@ party.model <- '
 ili_party_fit <- sem(model = party.model, data = analysis_df, se = "bootstrap", 
                      bootstrap = 1000)
 summary(ili_party_fit, fit.measures = TRUE)
-
-
-
-##Multiple Mediation (all ili subfactors) on political orientation
-orient_ili.model <- '
-                #mediators
-                advancement ~ a1 * Political.Beliefs
-                prototypicality ~ a2 * Political.Beliefs
-                entrepreneurship ~ a3 * Political.Beliefs
-                impresarioship ~ a4 * Political.Beliefs
-                
-                ingroup ~ b1 * advancement
-                ingroup ~ b2 * prototypicality
-                ingroup ~ b3 * entrepreneurship
-                ingroup ~ b4 * impresarioship
-                
-                #direct effect
-                ingroup ~ c * Political.Beliefs
-                
-                #indirect
-                ind_adv := a1 * b1
-                ind_proto := a2 * b2
-                ind_entre := a3 * b3
-                ind_imp := a4 * b4
-                
-                #total effect
-                total := ind_adv + ind_proto + ind_entre + ind_imp + c
-
-'
-orient_ili_fit <- sem(model = orient_ili.model, data = analysis_df, se = "bootstrap", 
-                      bootstrap = 1000)
-summary(orient_ili_fit, fit.measures = TRUE)
-
-
-
-##Multiple Mediation (all ili subfactors) on political party and orientation
-full.model <- '
-                #mediators
-                advancement ~ a1 * Political_Party + a5 * Political.Beliefs + Age + Sex
-                prototypicality ~ a2 * Political_Party + a6 * Political.Beliefs + Age + Sex
-                entrepreneurship ~ a3 * Political_Party + a7 * Political.Beliefs + Age + Sex
-                impresarioship ~ a4 * Political_Party + a8 * Political.Beliefs + Age + Sex
-                
-                ingroup ~ b1 * advancement + b2 * prototypicality + b3 * entrepreneurship + b4 * impresarioship
-                
-                #direct effect
-                ingroup ~ c1 * Political_Party + c2 * Political.Beliefs + Age + Sex
-                
-                #indirect
-                ind_adv_part := a1 * b1
-                ind_proto_part := a2 * b2
-                ind_entre_part := a3 * b3
-                ind_imp_part := a4 * b4
-                
-                ind_adv_orie := a5 * b1
-                ind_proto_orie := a6 * b2
-                ind_entre_orie := a7 * b3
-                ind_imp_orie := a8 * b4
-                
-                #total effect
-                total1 := ind_adv_part + ind_proto_part + ind_entre_part + ind_imp_part + c1
-                total2 := ind_adv_orie + ind_proto_orie + ind_entre_orie + ind_imp_orie + c2
-
-'
-full_fit <- sem(model = full.model, data = analysis_df, se = "bootstrap", 
-                bootstrap = 1000)
-summary(full_fit, fit.measures = TRUE)
 
 
 #########Model 3: introducing authoritarianism
@@ -203,6 +139,72 @@ ggplot(analysis_df, aes(ili, ingroup, color = factor(Political_Party))) +
 
 
 ############################MEDIATIONS###########################
+
+##Multiple Mediation (all ili subfactors) on political orientation
+orient_ili.model <- '
+                #mediators
+                advancement ~ a1 * Political.Beliefs
+                prototypicality ~ a2 * Political.Beliefs
+                entrepreneurship ~ a3 * Political.Beliefs
+                impresarioship ~ a4 * Political.Beliefs
+                
+                ingroup ~ b1 * advancement
+                ingroup ~ b2 * prototypicality
+                ingroup ~ b3 * entrepreneurship
+                ingroup ~ b4 * impresarioship
+                
+                #direct effect
+                ingroup ~ c * Political.Beliefs
+                
+                #indirect
+                ind_adv := a1 * b1
+                ind_proto := a2 * b2
+                ind_entre := a3 * b3
+                ind_imp := a4 * b4
+                
+                #total effect
+                total := ind_adv + ind_proto + ind_entre + ind_imp + c
+
+'
+orient_ili_fit <- sem(model = orient_ili.model, data = analysis_df, se = "bootstrap", 
+                      bootstrap = 1000)
+summary(orient_ili_fit, fit.measures = TRUE)
+
+
+
+##Multiple Mediation (all ili subfactors) on political party and orientation
+full.model <- '
+                #mediators
+                advancement ~ a1 * Political_Party + a5 * Political.Beliefs + Age + Sex
+                prototypicality ~ a2 * Political_Party + a6 * Political.Beliefs + Age + Sex
+                entrepreneurship ~ a3 * Political_Party + a7 * Political.Beliefs + Age + Sex
+                impresarioship ~ a4 * Political_Party + a8 * Political.Beliefs + Age + Sex
+                
+                ingroup ~ b1 * advancement + b2 * prototypicality + b3 * entrepreneurship + b4 * impresarioship
+                
+                #direct effect
+                ingroup ~ c1 * Political_Party + c2 * Political.Beliefs + Age + Sex
+                
+                #indirect
+                ind_adv_part := a1 * b1
+                ind_proto_part := a2 * b2
+                ind_entre_part := a3 * b3
+                ind_imp_part := a4 * b4
+                
+                ind_adv_orie := a5 * b1
+                ind_proto_orie := a6 * b2
+                ind_entre_orie := a7 * b3
+                ind_imp_orie := a8 * b4
+                
+                #total effect
+                total1 := ind_adv_part + ind_proto_part + ind_entre_part + ind_imp_part + c1
+                total2 := ind_adv_orie + ind_proto_orie + ind_entre_orie + ind_imp_orie + c2
+
+'
+full_fit <- sem(model = full.model, data = analysis_df, se = "bootstrap", 
+                bootstrap = 1000)
+summary(full_fit, fit.measures = TRUE)
+
 
 ##Two Mediators (Proto and Conservatism) on political party & ingroup
 con_party.model <- '
