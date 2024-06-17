@@ -37,48 +37,42 @@ sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identit
          -Q61) #Empty question
 
 
-######Filtering###### -- IF RELEVANT
+#Creates new dataset with age, gender, ethnicity, political party, political 
+#orientation, conservatism, and ILI, ingroup affiliation
+test_ili <- sil_df[c(2, 4, 6, 13:30, 39:60, 68:82)]
+test_ili[test_ili == ""] <- NA
+test_ili <- na.omit(test_ili)
 
-#Filtering by 'finished'
-#sil_df <- sil_df %>%
-  #filter(Finished == "TRUE") 
-
-#Creates new dataset with age, gender, political party, political orientation, conservatism,
-#and ILI, ingroup affiliation, fear of covid, and perceived vulnerability to disease
-test_ili <- sil_df[c(2, 4, 13:30, 39:60, 68:104)]
+#remove label rows
+test_ili <- test_ili[-c(1, 2), ]
 
 ###################Recoding####################
 
 test_ili <- test_ili %>%
   
   #Recode conservatism
-  mutate_at(c(3:8), ~as.numeric(recode(., "Strongly Disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(4:9), ~as.numeric(recode(., "Strongly Disagree" = 1, "Disagree" = 2, 
                                        "Somewhat disagree" = 3, "Neutral" = 4, 
                                        "Somewhat agree" = 5, "Agree" = 6, 
                                        "Strongly Agree" = 7))) %>%
   
   #Recode political orientation (bigger the number, the more conservative)
-  mutate_at(c(21), ~as.numeric(recode(., "Very Liberal" = 1, "Liberal" = 2, 
+  mutate_at(c(22), ~as.numeric(recode(., "Very Liberal" = 1, "Liberal" = 2, 
                                      "Somewhat liberal" = 3, "Moderate" = 4, 
                                      "Somewhat conservative" = 5, "Conservative" = 6,
                                      "Very Conservative" = 7))) %>%
   
   #Recode political affiliation
-  mutate_at(c(22:26), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
+  mutate_at(c(23:27), ~as.numeric(recode(., "Totally Oppose" = 1, "Strongly Oppose" = 2,
                                        "Oppose" = 3, "Somewhat oppose" = 4, "Weakly oppose" = 5,
-                                       "Neutral/Neither oppose nor support" = 6, "weakly support" = 7,
+                                       "Neutral/ Neither oppose nor support" = 6, "weakly support" = 7,
                                        "Somewhat support" = 8, "Support" = 9, "Strongly Support" = 10,
                                        "Totally Support" = 11))) %>%
   
   #Recode ingroup affiliation AND ili AND traditionalism and authoritarianism
-  mutate_at(c(9:20, 27:57), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
+  mutate_at(c(10:21, 28:58), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
                                         "Somewhat disagree" = 3, "Neither agree nor disagree" = 4,
-                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) %>%
-  
-  #Recode fear of covid and perceived vulnerability
-  mutate_at(c(58:79), ~as.numeric(recode(., "Strongly disagree" = 1, "Disagree" = 2, 
-                                       "Somewhat disagree" = 3, "Neutral" = 4,
-                                       "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) 
+                                        "Somewhat agree" = 5, "Agree" = 6, "Strongly agree" = 7))) 
 
 
 ####################Creating Sex and Political Party Variables###############
@@ -148,46 +142,7 @@ for (fs in colnames(act_scores)) {
   test_ili[idx, fs] <- act_scores[ , fs]
 }
 
-############Test Fear of Covid CFA#############
-fear.Model <- '
-  fear =~ Fear.of.COVID_1 + Fear.of.COVID_2 + Fear.of.COVID_3 + Fear.of.COVID_4 +
-          Fear.of.COVID_5 + Fear.of.COVID_6 + Fear.of.COVID_7
-'
 
-fear_fit <- cfa(fear.Model, data = test_ili, ordered = TRUE)
-summary(fear_fit, fit.measures = TRUE) #Shit RMSEA, good CFI
-
-
-##Yeet predicted fear of covid scores into ye olde test dataframe
-idx <- lavInspect(fear_fit, "case.idx")
-fear_scores <- lavPredict(fear_fit)
-## loop over factors
-for (fs in colnames(fear_scores)) {
-  test_ili[idx, fs] <- fear_scores[ , fs]
-}
-
-
-
-############Perceived Vulnerability CFA#############
-vulnerability.Model <- '
-  vulnerability =~ Perceived.Vuln_1 + Perceived.Vuln_2 + Perceived.Vuln_3 + 
-                   Perceived.Vuln_4 + Perceived.Vuln_5 + Perceived.Vuln_6 + 
-                   Perceived.Vuln_7 + Perceived.Vuln_8 + Perceived.Vuln_9 + 
-                   Perceived.Vuln_10 + Perceived.Vuln_11 + Perceived.Vuln_12 + 
-                   Perceived.Vuln_13 + Perceived.Vuln_14 + Perceived.Vuln_15
-'
-
-vulnerability_fit <- cfa(vulnerability.Model, data = test_ili, ordered = TRUE)
-summary(vulnerability_fit, fit.measures = TRUE) #Shit RMSEA, Shit CFI
-
-
-##Yeet predicted perceived vulnerability scores into ye olde test dataframe
-idx <- lavInspect(vulnerability_fit, "case.idx")
-vulnerability_scores <- lavPredict(vulnerability_fit)
-## loop over factors
-for (fs in colnames(vulnerability_scores)) {
-  test_ili[idx, fs] <- vulnerability_scores[ , fs]
-}
 
 #################Test Ingroup Affilitation CFA######################
 
@@ -213,7 +168,7 @@ for (fs in colnames(ingroup_scores)) {
 }
 
 #######################Clear environment, make nice dataframe#################
-analysis_df <- test_ili[c(1, 21,  80:93)]
+analysis_df <- test_ili[c(1, 3, 22, 59:70)]
 
 rm(list = setdiff(ls(), "analysis_df"))
 
