@@ -103,6 +103,7 @@ act_part_orie_model <- '
 act_part_orie_fit <- sem(model = act_part_orie_model, data = analysis_df, se = "bootstrap",
                          bootstrap = 1000)
 summary(act_part_orie_fit, fit.measures = TRUE)
+parameterEstimates(act_part_orie_fit, level = 0.95, boot.ci.type = "perc")
 
 #########################OLD ANALYSES BELOW#########################
 
@@ -209,6 +210,7 @@ full.model <- '
 full_fit <- sem(model = full.model, data = analysis_df, se = "bootstrap", 
                 bootstrap = 1000)
 summary(full_fit, fit.measures = TRUE)
+parameterEstimates(full_fit, level = 0.95, boot.ci.type = "perc")
 
 
 ##Two Mediators (Proto and Conservatism) on political party & ingroup
