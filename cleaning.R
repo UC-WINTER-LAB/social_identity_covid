@@ -147,12 +147,19 @@ for (fs in colnames(act_scores)) {
 #################Test Ingroup Affilitation CFA######################
 
 ingroup.Model <- '
-  ingroup =~ Ingroup.identity_1 + Ingroup.identity_2 + Ingroup.identity_3 + 
-             Ingroup.identity_4 + Ingroup.identity_5 + Ingroup.identity_6 + 
-             Ingroup.identity_7 + Ingroup.identity_8 + Ingroup.identity_9 + 
-             Ingroup.identity_10 + Ingroup.identity_11 + Ingroup.identity_12 + 
-             Ingroup.identity_13 + Ingroup.identity_14 + Ingroup.identity_15 + 
-             Ingroup.identity_16
+  commitment =~ Ingroup.identity_1 + Ingroup.identity_5 + Ingroup.identity_9 +
+                Ingroup.identity_13
+  
+  superiority =~ Ingroup.identity_2 + Ingroup.identity_6 + Ingroup.identity_10 +
+                 Ingroup.identity_14
+  
+  importance =~ Ingroup.identity_3 + Ingroup.identity_7 + Ingroup.identity_11 + 
+                Ingroup.identity_15
+  
+  deference =~ Ingroup.identity_4 + Ingroup.identity_8 + Ingroup.identity_12 +
+               Ingroup.identity_16
+               
+  ingroup =~ 1*commitment + 1*superiority + 1*importance + 1*deference
 '
 
 ingroup_fit <- cfa(ingroup.Model, data = test_ili, ordered = TRUE)
@@ -168,7 +175,7 @@ for (fs in colnames(ingroup_scores)) {
 }
 
 #######################Clear environment, make nice dataframe#################
-analysis_df <- test_ili[c(1, 3, 22, 59:70)]
+analysis_df <- test_ili[c(1, 3, 22, 59:74)]
 
 rm(list = setdiff(ls(), "analysis_df"))
 
