@@ -14,7 +14,7 @@ drop_acc()
 
 
 ######Loading lvl3 leadership file############
-sil_df <- drop_read_csv("winter data/covid19 lockdown surveys/covid_lvl3_identity_leadership.csv") %>%
+sil_df <- drop_read_csv("covid19 lockdown surveys/covid_lvl3_identity_leadership.csv") %>%
   
   #Removing Redundant Columns
   select(-StartDate, 
