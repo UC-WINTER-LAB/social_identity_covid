@@ -5,8 +5,10 @@ frq(analysis_df$Sex)
 frq(analysis_df$Ethnicity)
 
 analysis_df %>%
-  summarise(MeanAge = mean(Age, na.rm = TRUE), SDAge = sd(Age, na.rm = TRUE),
-            MinAge = min(Age, na.rm = TRUE), MaxAge = max(Age, na.rm = TRUE))
+  summarise(
+    MeanAge = mean(Age, na.rm = TRUE), SDAge = sd(Age, na.rm = TRUE),
+    MinAge = min(Age, na.rm = TRUE), MaxAge = max(Age, na.rm = TRUE)
+    )
 
 
 #####################MODEL TESTING############################
