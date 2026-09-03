@@ -7,6 +7,9 @@ library(Hmisc)
 library(ggpubr)
 library(stats)
 library(rstatix)
+library(rstan)
+library(brms)
+library(cmdstanr)
 
 ##############Set up
 drop_auth(new_user = TRUE)
