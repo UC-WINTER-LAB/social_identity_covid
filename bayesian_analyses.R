@@ -22,28 +22,25 @@ bayestestR::rope(m1)
 
 #Model 2 SEM--------------------------------------------------------------------
 ili.model <- '
-                #mediators
-                advancement ~ a1 * Political_Party
-                prototypicality ~ a2 * Political_Party
-                entrepreneurship ~ a3 * Political_Party
-                impresarioship ~ a4 * Political_Party
-                
-                ingroup ~ b1 * advancement
-                ingroup ~ b2 * prototypicality
-                ingroup ~ b3 * entrepreneurship
-                ingroup ~ b4 * impresarioship
-                
-                #direct effect
-                ingroup ~ c * Political_Party
-                
-                #indirect
-                ind_adv := a1 * b1
-                ind_proto := a2 * b2
-                ind_entre := a3 * b3
-                ind_imp := a4 * b4
-                
-                #total effect
-                total := ind_adv + ind_proto + ind_entre + ind_imp + c
+              #a paths
+              advancement ~ a1 * Political_Party
+              prototypicality ~ a2 * Political_Party
+              entrepreneurship ~ a3 * Political_Party
+              impresarioship ~ a4 * Political_Party
+              #b paths  
+              ingroup ~ b1 * advancement
+              ingroup ~ b2 * prototypicality
+              ingroup ~ b3 * entrepreneurship
+              ingroup ~ b4 * impresarioship
+              #direct effect
+              ingroup ~ c * Political_Party
+              #indirect
+              ind_adv := a1 * b1
+              ind_proto := a2 * b2
+              ind_entre := a3 * b3
+              ind_imp := a4 * b4
+              #total effect
+              total := ind_adv + ind_proto + ind_entre + ind_imp + c
 
 '
 
@@ -92,14 +89,6 @@ post <- as_draws_df(m2_informed_nz) %>%
     direct = b_ingroup_Political.Beliefs,
     total = direct + ind_adv + ind_proto + ind_entre + ind_imp
   )
-
-# check rope
-post %>%
-  summarise(across(starts_with("ind"), bayestestR::rope)) %>%
-  t() %>%
-  as.data.frame() %>%
-  rownames_to_column() %>%
-  filter(grepl("Percentage", rowname))
 
 post %>% 
   summarise(across(everything(), function(x){mean(x > 0)})) %>%
