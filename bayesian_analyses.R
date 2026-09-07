@@ -18,7 +18,10 @@ m1 <- brm(
 )
 
 m1
-bayestestR::rope(m1)
+bayestestR::rope(
+  m1,
+  range = c(-0.05, 0.05)
+)
 
 #Model 2 SEM--------------------------------------------------------------------
 ili.model <- '
@@ -83,7 +86,7 @@ m2_informed_nz <- brm(
 summary(m2_informed_nz)
 bayestestR::rope(m2_informed_nz)
 
-bayestestR::rope( #for some reasons these variables didn't come up in line above
+bayestestR::rope(
   m2_informed_nz,
   parameters = c(
     "advancement_political_partyNational",
@@ -91,6 +94,13 @@ bayestestR::rope( #for some reasons these variables didn't come up in line above
     "entrepreneurship_political_partyNational",
     "impresarioship_political_partyNational",
     "ingroup_political_partyNational"
+  ),
+  range = list(
+    advancement = c(-0.05, 0.05),
+    prototypicality = c(-0.05, 0.05),
+    entrepreneurship = c(-0.05, 0.05),
+    impresarioship = c(-0.05, 0.05),
+    ingroup = c(-0.05, 0.05)
   )
 )
 
@@ -136,7 +146,7 @@ results <- post %>% #View the indirect, direct and total effects in cute table
 bayestestR::rope(
   post %>%
     select(ind_adv, ind_proto, ind_entre, ind_imp, direct, total),
-  range = c(-0.06, 0.06)
+  range = c(-0.05, 0.05)
 )
 
 #Model 2 cute graphs------------------------------------------------------------
@@ -209,11 +219,10 @@ m3_informed_nz <- brm(
 )
 
 summary(m3_informed_nz)
-bayestestR::rope(m3_informed_nz, 
-                 range = c(-0.05, 0.05))
+bayestestR::rope(m3_informed_nz)
 
 
-bayestestR::rope( #for some reasons these variables didn't come up in line above
+bayestestR::rope(
   m3_informed_nz,
   parameters = c(
     "act_political_partyNational",
@@ -221,9 +230,9 @@ bayestestR::rope( #for some reasons these variables didn't come up in line above
     "ingroup_political_partyNational"
   ),
   range = list(
-    m_con = c(-0.05, 0.05),
-    m_proto = c(-0.05, 0.05),
-    z_model = c(-0.05, 0.05)
+    act = c(-0.05, 0.05),
+    prototypicality = c(-0.05, 0.05),
+    ingroup = c(-0.05, 0.05)
   )
 )
 
