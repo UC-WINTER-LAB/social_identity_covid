@@ -194,7 +194,7 @@ act_party.model <- '
 
                    #indirect effect
                    ind_proto := a1 * b1
-                   ind_act := a2 * a2
+                   ind_act := a2 * b2
 
                    #total effect
                    total := ind_proto + ind_act + c
@@ -231,21 +231,26 @@ m3_informed_nz <- brm(
 )
 
 summary(m3_informed_nz)
-bayestestR::rope(m3_informed_nz)
 
-
+post_m3 <- as_draws_df(m3_informed_nz)
 bayestestR::rope(
-  m3_informed_nz,
-  parameters = c(
-    "act_political_partyNational",
-    "prototypicality_political_partyNational",
-    "ingroup_political_partyNational"
-  ),
-  range = list(
-    act = c(-0.05, 0.05),
-    prototypicality = c(-0.05, 0.05),
-    ingroup = c(-0.05, 0.05)
-  )
+  post_m3 %>%
+    select(
+      b_act_political_partyNational,
+      b_act_age,
+      b_act_sexMale,
+      
+      b_prototypicality_political_partyNational,
+      b_prototypicality_age,
+      b_prototypicality_sexMale,
+      
+      b_ingroup_act,
+      b_ingroup_prototypicality,
+      b_ingroup_age,
+      b_ingroup_sexMale,
+      b_ingroup_political_partyNational
+    ),
+  range = c(-0.05, 0.05)
 )
 
 # Model 3 - indirect / total effects--------------------------------------------
