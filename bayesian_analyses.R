@@ -210,3 +210,52 @@ m3_informed_nz <- brm(
 
 summary(m3_informed_nz)
 bayestestR::rope(m3_informed_nz)
+
+# Model 3 - indirect / total effects--------------------------------------------
+post <- as_draws_df(m3_informed_nz) %>%
+  mutate(
+    ind_con = b_conservatism_political_partyNational * b_ingroup_conservatism,
+    ind_proto = b_prototypicality_political_partyNational * b_ingroup_prototypicality,
+    direct = b_ingroup_political_partyNational,
+    total = direct + ind_con + ind_proto
+  )
+
+post %>%
+  summarise(
+    across(
+      c(ind_proto, ind_con, direct, total),
+      list(
+        estimate = mean,
+        lower_95 = ~quantile(.x, 0.025),
+        upper_95 = ~quantile(.x, 0.975)
+      )
+    )
+  )
+
+results <- post %>% #View the indirect, direct and total effects in cute table
+  summarise(
+    across(
+      c(ind_proto, ind_con, direct, total),
+      list(
+        estimate = mean,
+        lower_95 = ~quantile(.x, 0.025),
+        upper_95 = ~quantile(.x, 0.975)
+      )
+    )) %>%
+  pivot_longer(
+    everything(),
+    names_to = c("effect", ".value"),
+    names_pattern = "(.*)_(estimate|lower_95|upper_95)"
+  )
+
+bayestestR::rope(
+  post %>%
+    select(ind_proto, ind_con, direct, total),
+  range = c(-0.06, 0.06)
+)
+
+#Model 3 cute graphs------------------------------------------------------------
+agg_draw(m3_informed_nz, m3_naive_nz) %>%
+  ggplot(aes(x=vals, color=model)) +
+  geom_density() +
+  facet_wrap(~var, scales = "free")
