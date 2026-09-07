@@ -90,7 +90,7 @@ bayestestR::rope( #for some reasons these variables didn't come up in line above
   )
 )
 
-# Model 2 - indirect / total effects
+# Model 2 - indirect / total effects--------------------------------------------
 post <- as_draws_df(m2_informed_nz) %>%
   mutate(
     ind_adv = b_advancement_political_partyNational * b_ingroup_advancement,
@@ -134,6 +134,7 @@ bayestestR::rope( #viewing the ROPE of total effect
   range = c(-0.06, 0.06)
 )
 
+#Model 2 cute graphs------------------------------------------------------------
 agg_draw <- function(naive_model, informed_model) {
   bind_rows(
     as_draws_df(naive_model) %>%
