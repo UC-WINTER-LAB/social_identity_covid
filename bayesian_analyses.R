@@ -27,18 +27,22 @@ ili.model <- '
               prototypicality ~ a2 * Political_Party
               entrepreneurship ~ a3 * Political_Party
               impresarioship ~ a4 * Political_Party
+              
               #b paths  
               ingroup ~ b1 * advancement
               ingroup ~ b2 * prototypicality
               ingroup ~ b3 * entrepreneurship
               ingroup ~ b4 * impresarioship
+              
               #direct effect
               ingroup ~ c * Political_Party
+              
               #indirect
               ind_adv := a1 * b1
               ind_proto := a2 * b2
               ind_entre := a3 * b3
               ind_imp := a4 * b4
+              
               #total effect
               total := ind_adv + ind_proto + ind_entre + ind_imp + c
 
@@ -129,8 +133,9 @@ results <- post %>% #View the indirect, direct and total effects in cute table
     names_pattern = "(.*)_(estimate|lower_95|upper_95)"
   )
 
-bayestestR::rope( #viewing the ROPE of total effect 
-  post$total,
+bayestestR::rope(
+  post %>%
+    select(ind_adv, ind_proto, ind_entre, ind_imp, direct, total),
   range = c(-0.06, 0.06)
 )
 
@@ -153,3 +158,55 @@ agg_draw(m2_informed_nz, m2_naive_nz) %>%
   ggplot(aes(x=vals, color=model)) +
   geom_density() +
   facet_wrap(~var, scales = "free")
+
+#Model 3 two mediators----------------------------------------------------------
+con_orientation.model <- '
+                   #mediators
+                   prototypicality ~ a1 * Political.Beliefs + Age + Sex
+                   conservatism ~ a2 * Political.Beliefs + Age + Sex
+
+                   ingroup ~ b1 * prototypicality + b2 * conservatism
+
+                   #direct effect
+                   ingroup ~ c * Political.Beliefs + Age + Sex
+
+                   #indirect effect
+                   ind_proto := a1 * b1
+                   ind_conserv := a2 * a2
+
+                   #total effect
+                   total := ind_proto + ind_conserv + c
+'
+
+m_con <- bf(conservatism ~ political_party + age + sex)
+m_proto <- bf(prototypicality ~ political_party + age + sex)
+
+z_model <- bf(ingroup ~ conservatism + prototypicality +
+  political_party + age + sex
+)
+
+m3_naive_nz <- brm(
+  m_proto + m_con + z_model + set_rescor(FALSE),
+  data = analysis_df,
+  family = gaussian,
+  chains = 4, cores = 4
+)
+
+priors_ili_3 <- c(
+  prior(normal(0, 1), class = "b", resp = "conservatism"),
+  prior(normal(0, 1), class = "b", resp = "prototypicality"),
+  prior(normal(0, 1), class = "b", resp = "ingroup")
+)
+
+m3_informed_nz <- brm(
+  m_con + m_proto + z_model + set_rescor(FALSE),
+  prior = priors_ili_3,
+  data = analysis_df,
+  family = gaussian,
+  sample_prior = "yes",
+  chains = 4,
+  cores = 4
+)
+
+summary(m3_informed_nz)
+bayestestR::rope(m3_informed_nz)
