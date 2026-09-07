@@ -84,15 +84,27 @@ m2_informed_nz <- brm(
 )
 
 summary(m2_informed_nz)
-bayestestR::rope(m2_informed_nz)
-
-bayestestR::rope(
+bayestestR::rope( #if I don't state exactly what I want they don't all come up
   m2_informed_nz,
   parameters = c(
     "advancement_political_partyNational",
+    "advancement_age",
+    "advancement_sexMale",
     "prototypicality_political_partyNational",
+    "prototypicality_age",
+    "prototypicality_sexMale",
     "entrepreneurship_political_partyNational",
+    "entrepreneurship_age",
+    "entrepreneurship_sexMale",
     "impresarioship_political_partyNational",
+    "impresarioship_age",
+    "impresarioship_sexMale",
+    "ingroup_advancement",
+    "ingroup_prototypicality",
+    "ingroup_entrepreneurship",
+    "ingroup_impresarioship",
+    "ingroup_age",
+    "ingroup_sexMale",
     "ingroup_political_partyNational"
   ),
   range = list(
