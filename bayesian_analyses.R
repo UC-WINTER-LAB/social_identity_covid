@@ -93,21 +93,46 @@ bayestestR::rope( #for some reasons these variables didn't come up in line above
 # Model 2 - indirect / total effects
 post <- as_draws_df(m2_informed_nz) %>%
   mutate(
-    ind_adv = b_advancement_Political.Beliefs * b_ingroup_advancement,
-    ind_proto = b_prototypicality_Political.Beliefs * b_ingroup_prototypicality,
-    ind_entre = b_entrepreneurship_Political.Beliefs * b_ingroup_entrepreneurship,
-    ind_imp = b_impresarioship_Political.Beliefs * b_ingroup_impresarioship,
-    direct = b_ingroup_Political.Beliefs,
+    ind_adv = b_advancement_political_partyNational * b_ingroup_advancement,
+    ind_proto = b_prototypicality_political_partyNational * b_ingroup_prototypicality,
+    ind_entre = b_entrepreneurship_political_partyNational * b_ingroup_entrepreneurship,
+    ind_imp = b_impresarioship_political_partyNational * b_ingroup_impresarioship,
+    direct = b_ingroup_political_partyNational,
     total = direct + ind_adv + ind_proto + ind_entre + ind_imp
   )
 
-post %>% 
-  summarise(across(everything(), function(x){mean(x > 0)})) %>%
-  select(starts_with("b_")) %>%
-  t() %>%
-  as.data.frame() %>%
-  rownames_to_column() %>%
-  filter(!between(V1, 0.05, 0.95))
+post %>%
+  summarise(
+    across(
+      c(ind_adv, ind_proto, ind_entre, ind_imp, direct, total),
+      list(
+        estimate = mean,
+        lower_95 = ~quantile(.x, 0.025),
+        upper_95 = ~quantile(.x, 0.975)
+      )
+    )
+  )
+
+results <- post %>% #View the indirect, direct and total effects in cute table
+  summarise(
+    across(
+      c(ind_adv, ind_proto, ind_entre, ind_imp, direct, total),
+      list(
+        estimate = mean,
+        lower_95 = ~quantile(.x, 0.025),
+        upper_95 = ~quantile(.x, 0.975)
+      )
+    )) %>%
+  pivot_longer(
+    everything(),
+    names_to = c("effect", ".value"),
+    names_pattern = "(.*)_(estimate|lower_95|upper_95)"
+  )
+
+bayestestR::rope( #viewing the ROPE of total effect 
+  post$total,
+  range = c(-0.06, 0.06)
+)
 
 agg_draw <- function(naive_model, informed_model) {
   bind_rows(
