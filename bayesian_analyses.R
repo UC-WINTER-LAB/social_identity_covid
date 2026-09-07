@@ -44,13 +44,13 @@ ili.model <- '
 
 '
 
-m_adv <- bf(advancement ~ Political.Beliefs + Age + Sex)
-m_proto <- bf(prototypicality ~ Political.Beliefs + Age + Sex)
-m_entre <- bf(entrepreneurship ~ Political.Beliefs + Age + Sex)
-m_imp <- bf(impresarioship ~ Political.Beliefs + Age + Sex)
+m_adv <- bf(advancement ~ Political_Party + Age + Sex)
+m_proto <- bf(prototypicality ~ Political_Party + Age + Sex)
+m_entre <- bf(entrepreneurship ~ Political_Party + Age + Sex)
+m_imp <- bf(impresarioship ~ Political_Party + Age + Sex)
 
 y_model <- bf(ingroup ~ advancement + prototypicality + entrepreneurship 
-              + impresarioship + Political.Beliefs + Age + Sex)
+              + impresarioship + Political_Party + Age + Sex)
 
 m2_naive_nz <- brm(
   m_adv + m_proto + m_entre + m_imp + y_model + set_rescor(FALSE),
