@@ -411,7 +411,7 @@ post %>%
     )
   )
 
-results <- post %>% #View the indirect, direct and total effects in cute table
+results_4 <- post %>% #View the indirect, direct and total effects in cute table
   summarise(
     across(
       c(ind_act_part, ind_proto_part, ind_act_orie, ind_proto_orie, 
