@@ -188,3 +188,7 @@ rm(list = setdiff(ls(), "analysis_df"))
 analysis_df$Political_Party <- as.factor(analysis_df$Political_Party)
 analysis_df$Sex <- as.factor(analysis_df$Sex)
 analysis_df$Age <- as.numeric(analysis_df$Age)
+
+#Cleaning code------------------------------------------------------------------
+analysis_df <- analysis_df %>%
+  janitor::clean_names()
